@@ -33,7 +33,7 @@ app.use("/api/comments", require("./routes/commentRoutes"));
 app.use("/api/likes", require("./routes/likeRoutes"));
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.send("Hello Mo!");
 });
 
 // Add error handler middleware functions to the pipeline
