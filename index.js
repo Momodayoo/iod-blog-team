@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const handlebars = require('express-handlebars');
 const { handleInvalidJson, handleUnauthorized, handleNotFound, handleAllOtherErrors } = require("./errors/errorHandler");
 const morganMiddleware = require("./logging/morganMiddleware");
 const Logger = require("./logging/logger");
@@ -12,7 +13,18 @@ models.init();
 
 const app = express();
 
+app.set('view engine', 'hbs');
+
+app.engine('hbs', handlebars.engine({
+  layoutsDir: __dirname + '/views/layouts',
+  partialsDir: __dirname + '/views/partials',
+  defaultLayout: 'main',
+  extname: 'hbs'
+}));
+
 app.use(express.json());
+//Serves static files (we need it to import a css file)
+app.use(express.static('public'));
 
 app.use(morganMiddleware);
 
@@ -33,7 +45,7 @@ app.use("/api/comments", require("./routes/commentRoutes"));
 app.use("/api/likes", require("./routes/likeRoutes"));
 
 app.get("/", (req, res) => {
-  res.send("Hello Mo!");
+  res.render('main', {layout : 'index'});
 });
 
 // Add error handler middleware functions to the pipeline
