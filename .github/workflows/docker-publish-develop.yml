@@ -3,7 +3,7 @@ name: publish develop image to docker hub
 on:
   push:
     branches:
-      - 'main'
+      - 'momodayoo'
 
 jobs:
   docker:

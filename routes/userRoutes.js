@@ -113,7 +113,7 @@ router.get("/:id", idParamValidator, async (req, res) => {
  *      '500':
  *        description: Server error
  */
-router.post("/", userValidator, async (req, res) => {
+router.post("/", userValidator, async (req, res, next) => {
   try{
     const errors = validationResult(req);
     if (errors.isEmpty()) {

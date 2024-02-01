@@ -44,8 +44,21 @@ app.use("/api/comments", require("./routes/commentRoutes"));
 // add like routes
 app.use("/api/likes", require("./routes/likeRoutes"));
 
+// link for pages in views//
+
 app.get("/", (req, res) => {
   res.render('main', {layout : 'index'});
+});
+
+app.get("/login", (req, res) => {
+  res.render('login', {layout : 'index'});
+});
+
+// swagger API//
+app.get("/users", async (req, res) => {
+  const users = await userController.getUsers();
+  console.log(users);
+  res.render('users', {layout : 'index', users: users});
 });
 
 // Add error handler middleware functions to the pipeline
