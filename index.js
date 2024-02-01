@@ -1,10 +1,8 @@
 require("dotenv").config();
 const express = require("express");
-var cors = require('cors');
 const handlebars = require('express-handlebars');
 const { handleInvalidJson, handleUnauthorized, handleNotFound, handleAllOtherErrors } = require("./errors/errorHandler");
 const morganMiddleware = require("./logging/morganMiddleware");
-const userController = require("./controllers/userController");
 const Logger = require("./logging/logger");
 
 // Database
@@ -13,15 +11,7 @@ const db = require("./db");
 const models = require("./models");
 models.init();
 
-var corsOptions = {
-  origin: 'http://localhost:8080',
-  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-}
-
-
 const app = express();
-
-app.use(cors(corsOptions));
 
 app.set('view engine', 'hbs');
 
@@ -54,10 +44,21 @@ app.use("/api/comments", require("./routes/commentRoutes"));
 // add like routes
 app.use("/api/likes", require("./routes/likeRoutes"));
 
-app.use("/users", require("./routes/viewUserRoutes"));
+// link for pages in views//
 
 app.get("/", (req, res) => {
   res.render('main', {layout : 'index'});
+});
+
+app.get("/login", (req, res) => {
+  res.render('login', {layout : 'index'});
+});
+
+// swagger API//
+app.get("/users", async (req, res) => {
+  const users = await userController.getUsers();
+  console.log(users);
+  res.render('users', {layout : 'index', users: users});
 });
 
 // Add error handler middleware functions to the pipeline
