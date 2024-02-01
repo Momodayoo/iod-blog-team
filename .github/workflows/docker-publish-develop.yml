@@ -35,7 +35,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USER_NAME }}/io-blog-team:latest
+          tags: ${{ secrets.DOCKER_HUB_USER_NAME }}/iod-blog-team:latest
           file: ./Dockerfile
           build-args: |
             NODE_VERSION=${{ matrix.node-version }}
