@@ -54,6 +54,14 @@ app.get("/login", (req, res) => {
   res.render('login', {layout : 'index'});
 });
 
+app.get("/users", (req, res) => {
+  res.render('users', {layout : 'index'});
+});
+
+app.get("/users-add", (req, res) => {
+  res.render('users-add', {layout : 'index'});
+});
+
 // swagger API//
 app.get("/users", async (req, res) => {
   const users = await userController.getUsers();
