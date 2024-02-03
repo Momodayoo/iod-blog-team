@@ -63,7 +63,7 @@ app.get("/users-add", (req, res) => {
 });
 
 // swagger API//
-app.get("/users", async (req, res) => {
+app.get("/api-docs", async (req, res) => {
   const users = await userController.getUsers();
   console.log(users);
   res.render('users', {layout : 'index', users: users});
