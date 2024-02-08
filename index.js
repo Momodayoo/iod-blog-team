@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require('cors');
 const handlebars = require('express-handlebars');
 const { handleInvalidJson, handleUnauthorized, handleNotFound, handleAllOtherErrors } = require("./errors/errorHandler");
 const morganMiddleware = require("./logging/morganMiddleware");
@@ -27,6 +28,9 @@ app.use(express.json());
 app.use(express.static('public'));
 
 app.use(morganMiddleware);
+
+app.use(cors());
+// cross origin resource sharing back end on 3000, front end 8080
 
 // Swagger
 if (process.env.NODE_ENV === 'development') {
