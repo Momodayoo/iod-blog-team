@@ -62,13 +62,13 @@ router.get('/:id', idParamValidator, async (req, res, next) => {
         if (errors.isEmpty()) {
             const data = await postController.getPost(req.params.id);
             if(!data){
-                res.sendStatus(404);
+                res.status(404).json({ result: 404, message: "Post not found" });
             }
             else {
                 res.send({ result: 200, data: data });
             }
         } else {
-            res.status(422).json({errors: errors.array()});
+            res.status(422).json({result: 422, errors: errors.array()});
         }
     }catch(err){
         next(err);
@@ -106,13 +106,13 @@ router.get('/:id/include', idParamValidator, async (req, res, next) => {
         if (errors.isEmpty()) {
             const data = await postController.getPostIncludeAll(req.params.id);
             if(!data){
-                res.sendStatus(404);
+                res.status(404).json({ result: 404, message: "Post not found" });
             }
             else {
                 res.send({ result: 200, data: data });
             }
         } else {
-            res.status(422).json({errors: errors.array()});
+            res.status(422).json({result: 422, errors: errors.array()});
         }
     }catch(err){
         next(err);
@@ -151,13 +151,13 @@ router.get('/user/:id', idParamValidator, async (req, res, next) => {
         if (errors.isEmpty()) {
             const data = await postController.getPostsByUser(req.params.id);
             if(!data){
-                res.sendStatus(404);
+                res.status(404).json({ result: 404, message: "Post not found" });
             }
             else {
                 res.send({ result: 200, data: data });
             }
         } else {
-            res.status(422).json({errors: errors.array()});
+            res.status(422).json({result: 422, errors: errors.array()});
         }
     }catch(err){
         next(err);
@@ -207,16 +207,20 @@ router.post('/', postValidator, async (req, res, next) => {
         if (errors.isEmpty()) {
             const data = await postController.createPost(req.body);
             if(!data){
-                res.sendStatus(404);
+                res.status(404).json({ result: 404, message: "Post not found" });
             } else {
                 res.send({ result: 200, data: data });
             }
         } else {
-            res.status(422).json({errors: errors.array()});
+            res.status(422).json({result: 422, errors: errors.array()});
         }
     }
     catch(err){
-        next(err);
+        if (err.name === 'SequelizeForeignKeyConstraintError') {
+            res.status(422).send({ errors: err.parent });
+        }else {
+            next(err);
+        }
     }
 });
 
@@ -271,7 +275,7 @@ router.put('/:id', postUpdateValidator, async (req, res, next) => {
             const data = await postController.updatePost(req.params.id, req.body);
             res.send({ result: 200, data: data });
         } else {
-            res.status(422).json({errors: errors.array()});
+            res.status(422).json({result: 422, errors: errors.array()});
         }
     }catch(err){
         next(err);
@@ -309,13 +313,13 @@ router.delete('/:id', idParamValidator, async (req, res, next) => {
         if (errors.isEmpty()) {
             const data = await postController.deletePost(req.params.id);
             if(!data){
-                res.sendStatus(404);
+                res.status(404).json({ result: 404, message: "Post not found" });
             }
             else {
                 res.send({ result: 200, data: data });
             }
         } else {
-            res.status(422).json({errors: errors.array()});
+            res.status(422).json({result: 422, errors: errors.array()});
         }
     }catch(err){
         next(err);

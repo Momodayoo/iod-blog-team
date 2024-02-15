@@ -25,6 +25,10 @@ const User = db.Sequelize.define(
         len: [6, 50],
       },
     },
+    avatar: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     // Other model options go here

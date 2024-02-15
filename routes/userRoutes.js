@@ -4,6 +4,8 @@ const { userValidator, userUpdateValidator } = require("../validators/userValida
 const { idParamValidator } = require("../validators");
 const router = express.Router();
 const userController = require("../controllers/userController");
+const multer  = require('multer');
+const upload = multer({ dest: 'uploads/' });
 
 /**
  * @swagger
@@ -62,12 +64,12 @@ router.get("/:id", idParamValidator, async (req, res, next) => {
     if (errors.isEmpty()) {
       data = await userController.getUser(req.params.id);
       if (!data) {
-        res.sendStatus(404);
+        res.status(404).json({ result: 404, message: "User not found" });
       } else {
         res.send({ result: 200, data: data });
       }
     } else {
-      res.status(422).json({errors: errors.array()});
+      res.status(422).json({result: 422, errors: errors.array()});
     }
   }
   catch(err){
@@ -101,6 +103,9 @@ router.get("/:id", idParamValidator, async (req, res, next) => {
  *         password:
  *          type: string
  *          example: password
+ *         avatar:
+ *          type: string
+ *          example: filename.jpg
  *    responses:
  *      '200':
  *        description: A successful response
@@ -113,20 +118,25 @@ router.get("/:id", idParamValidator, async (req, res, next) => {
  *      '500':
  *        description: Server error
  */
-router.post("/", userValidator, async (req, res, next) => {
+router.post("/", upload.single('avatar'), userValidator, async (req, res, next) => {
   try{
     const errors = validationResult(req);
     if (errors.isEmpty()) {
-      const data = await userController.createUser(req.body);
+      let user = req.body;
+      user.avatar = req.file.filename;
+      const data = await userController.createUser(user);
       res.send({ result: 200, data: data });
     } else {
-      res.status(422).json({errors: errors.array()});
+      res.status(422).json({result: 422, errors: errors.array()});
     }
   }
   catch(err){
-    // next(err);
-    console.log(err);
-    next(err);
+    // handle duplicate email error
+    if (err.name === 'SequelizeUniqueConstraintError') {
+      res.status(422).json({result: 422, errors: err.errors});
+    }else{
+      next(err);
+    }
   }
 });
 
@@ -182,12 +192,12 @@ router.put("/:id", userUpdateValidator, async (req, res, next) => {
     if (errors.isEmpty()) {
       const data = await userController.updateUser(req.params.id, req.body);
       if (data[0] === 0) {
-        res.sendStatus(404);
+        res.status(404).json({ result: 404, message: "User not found" });
       } else {
         res.send({ result: 200, data: data });
       }
     } else {
-      res.status(422).json({errors: errors.array()});
+      res.status(422).json({result: 422, errors: errors.array()});
     }
   }
   catch(err){
@@ -226,12 +236,12 @@ router.delete("/:id", idParamValidator, async (req, res, next) => {
     if (errors.isEmpty()) {
       const data = await userController.deleteUser(req.params.id);
       if (!data) {
-        res.sendStatus(404);
+        res.status(404).json({ result: 404, message: "User not found" });
       } else {
         res.send({ result: 200, data: data });
       }
     } else {
-      res.status(422).json({errors: errors.array()});
+      res.status(422).json({result: 422, errors: errors.array()});
     }
   }
   catch(err){

@@ -58,11 +58,11 @@ router.get('/:id', idParamValidator, async (req, res, next) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(422).json({ errors: errors.array() });
+            return res.status(422).json({ result: 422, errors: errors.array() });
         } else {
             const data = await likeController.getLike(req.params.id);
             if (!data) {
-                res.status(404).send({ message: 'Like not found' });
+                res.status(404).send({ result: 404, message: 'Like not found' });
             } else {
                 res.send({ result: 200, data: data });
             }
@@ -101,7 +101,7 @@ router.get('/post/:id', idParamValidator, async (req, res, next) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(422).json({ errors: errors.array() });
+            return res.status(422).json({ result: 422, errors: errors.array() });
         } else {
             const data = await likeController.getLikesByPost(req.params.id);
             res.send({ result: 200, data: data });
@@ -140,7 +140,7 @@ router.get('/user/:id', idParamValidator, async (req, res, next) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(422).json({ errors: errors.array() });
+            return res.status(422).json({ result: 422, errors: errors.array() });
         } else {
             const data = await likeController.getLikesByUser(req.params.id);
             res.send({ result: 200, data: data });
@@ -185,13 +185,18 @@ router.post('/', likeValidator, async (req, res, next) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(422).send({ errors: errors.array() });
+            return res.status(422).send({ result: 422, errors: errors.array() });
         } else {
             const data = await likeController.createLike(req.body);
             res.status(201).send({ result: 201, data: data });
         }
     }catch (err) {
-        next(err);
+        // check SequelizeForeignKeyConstraintError
+        if (err.name === 'SequelizeForeignKeyConstraintError') {
+            res.status(422).send({ result: 422, errors: err.parent });
+        }else {
+            next(err);
+        }
     }
 });
 
@@ -225,11 +230,11 @@ router.get('/include/:id', idParamValidator, async (req, res, next) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(422).json({ errors: errors.array() });
+            return res.status(422).json({ result: 422, errors: errors.array() });
         } else {
             const data = await likeController.getLikeIncludeAll(req.params.id);
             if (!data) {
-                res.status(404).send({ message: 'Like not found' });
+                res.status(404).send({ result: 400, message: 'Like not found' });
             } else {
                 res.send({ result: 200, data: data });
             }
@@ -285,11 +290,11 @@ router.put('/:id', likeUpdateValidator, async (req, res, next) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(422).send({ errors: errors.array() });
+            return res.status(422).send({ result: 422, errors: errors.array() });
         } else {
             const data = await likeController.updateLike(req.params.id, req.body);
             if (data[0] === 0) {
-                res.status(404).send({ message: 'Like not found' });
+                res.status(404).send({ result: 404, message: 'Like not found' });
             } else {
                 res.send({ result: 200, data: data });
             }
@@ -328,11 +333,11 @@ router.delete('/:id', idParamValidator, async (req, res, next) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(422).send({ errors: errors.array() });
+            return res.status(422).send({ result: 422, errors: errors.array() });
         } else {
             const data = await likeController.deleteLike(req.params.id);
             if (!data) {
-                res.status(404).send({ message: 'Like not found' });
+                res.status(404).send({ result: 404, message: 'Like not found' });
             } else {
                 res.send({ result: 200, data: data });
             }

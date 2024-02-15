@@ -6,3 +6,4 @@ DB_PORT=3306
 DB_SSL=true
 BASE_URL=https://iodblogapi.azurewebsites.net,
 PORT=3000
+CORS_ORIGIN=https://iodblog.azurewebsites.net

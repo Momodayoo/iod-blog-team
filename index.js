@@ -1,6 +1,6 @@
 require("dotenv").config();
 const express = require("express");
-const cors = require('cors');
+var cors = require('cors');
 const handlebars = require('express-handlebars');
 const { handleInvalidJson, handleUnauthorized, handleNotFound, handleAllOtherErrors } = require("./errors/errorHandler");
 const morganMiddleware = require("./logging/morganMiddleware");
@@ -12,7 +12,7 @@ const db = require("./db");
 const models = require("./models");
 models.init();
 
-const app = express();
+const app = require("./app");
 
 app.set('view engine', 'hbs');
 
@@ -22,15 +22,11 @@ app.engine('hbs', handlebars.engine({
   defaultLayout: 'main',
   extname: 'hbs'
 }));
-
-app.use(express.json());
 //Serves static files (we need it to import a css file)
-app.use(express.static('public'));
+app.use(express.static('public')); 
+app.use('/uploads', express.static('uploads')); 
 
 app.use(morganMiddleware);
-
-app.use(cors());
-// cross origin resource sharing back end on 3000, front end 8080
 
 // Swagger
 if (process.env.NODE_ENV === 'development') {
@@ -48,29 +44,10 @@ app.use("/api/comments", require("./routes/commentRoutes"));
 // add like routes
 app.use("/api/likes", require("./routes/likeRoutes"));
 
-// link for pages in views//
+app.use("/users", require("./routes/viewUserRoutes"));
 
 app.get("/", (req, res) => {
   res.render('main', {layout : 'index'});
-});
-
-app.get("/login", (req, res) => {
-  res.render('login', {layout : 'index'});
-});
-
-app.get("/users", (req, res) => {
-  res.render('users', {layout : 'index'});
-});
-
-app.get("/users-add", (req, res) => {
-  res.render('users-add', {layout : 'index'});
-});
-
-// swagger API//
-app.get("/api-docs", async (req, res) => {
-  const users = await userController.getUsers();
-  console.log(users);
-  res.render('users', {layout : 'index', users: users});
 });
 
 // Add error handler middleware functions to the pipeline
@@ -82,5 +59,5 @@ app.use(handleAllOtherErrors);
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
-  Logger.debug(`Example app listening on port ${port}!`);
+  Logger.debug(`IOD Blog Api listening on port ${port}!`);
 });

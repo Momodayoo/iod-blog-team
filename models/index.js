@@ -11,6 +11,7 @@ async function init() {
             name: "userId",
             allowNull: false,
         },
+
     });
     Post.belongsTo(User, {
         foreignKey: {
@@ -66,12 +67,14 @@ async function init() {
             allowNull: false,
         }
     });
+
   // sync all models with database
   await User.sync();
   await Post.sync();
   await Comment.sync();
   await Like.sync();
 }
+
 module.exports = {
   init,
 };

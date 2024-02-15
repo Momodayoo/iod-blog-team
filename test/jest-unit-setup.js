@@ -1,0 +1,10 @@
+process.env.NODE_ENV="test"
+process.env.DB_NAME="blogdb_test"
+process.env.DB_USER="root"
+process.env.DB_PASSWORD="pa55word"
+process.env.DB_HOST="localhost"
+process.env.DB_PORT="3306"
+process.env.DB_SSL=false
+process.env.BASE_URL="http://localhost:3000"
+process.env.PORT="3000"
+process.env.CORS_ORIGIN="*"

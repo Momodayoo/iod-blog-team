@@ -47,9 +47,10 @@ jobs:
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             DB_HOST=${{ secrets.DB_HOST }}
             DB_PORT=${{ secrets.DB_PORT }}
-            PORT=${{ secrets.PORT }}
             DB_SSL=${{ secrets.DB_SSL }}
             BASE_URL=${{ secrets.BASE_URL }}
+            PORT=${{ secrets.PORT }}
+            CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
             
 
       - name: Image digest
