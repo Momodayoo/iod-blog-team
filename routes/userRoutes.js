@@ -1,11 +1,18 @@
 const express = require("express");
-const {validationResult} = require('express-validator');
-const { userValidator, userUpdateValidator } = require("../validators/userValidator");
+const { validationResult } = require("express-validator");
+const {
+  userValidator,
+  userUpdateValidator,
+} = require("../validators/userValidator");
 const { idParamValidator } = require("../validators");
 const router = express.Router();
 const userController = require("../controllers/userController");
-const multer  = require('multer');
-const upload = multer({ dest: process.env.UPLOADS_DIR || 'uploads'});
+const multer = require("multer");
+const upload = multer({ dest: process.env.UPLOADS_DIR || "uploads" });
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
+const jwt = require('jsonwebtoken');
+const verifyToken = require("../auth/authMiddleware");
 
 /**
  * @swagger
@@ -22,12 +29,11 @@ const upload = multer({ dest: process.env.UPLOADS_DIR || 'uploads'});
  *      '500':
  *        description: Server error
  */
-router.get("/", async (req, res, next) => {
-  try{
+router.get("/", verifyToken, async (req, res, next) => {
+  try {
     const data = await userController.getUsers();
     res.send({ result: 200, data: data });
-  }
-  catch(err){
+  } catch (err) {
     next(err);
   }
 });
@@ -58,7 +64,7 @@ router.get("/", async (req, res, next) => {
  *        description: Server error
  */
 router.get("/:id", idParamValidator, async (req, res, next) => {
-  try{
+  try {
     let data;
     const errors = validationResult(req);
     if (errors.isEmpty()) {
@@ -69,16 +75,14 @@ router.get("/:id", idParamValidator, async (req, res, next) => {
         res.send({ result: 200, data: data });
       }
     } else {
-      res.status(422).json({result: 422, errors: errors.array()});
+      res.status(422).json({ result: 422, errors: errors.array() });
     }
-  }
-  catch(err){
+  } catch (err) {
     next(err);
   }
 });
 
-
-/** 
+/**
  * @swagger
  * /api/users:
  *  post:
@@ -118,26 +122,82 @@ router.get("/:id", idParamValidator, async (req, res, next) => {
  *         description: Validation error
  *      '500':
  *        description: Server error
-* */
-router.post("/", upload.single('avatar'), userValidator, async (req, res, next) => {
-  try{
-    const errors = validationResult(req);
-    if (errors.isEmpty()) {
-      let user = req.body;
-      if (req.file) user.avatar = req.file.filename;
-      const data = await userController.createUser(user);
-      res.send({ result: 200, data: data });
-    } else {
-      res.status(422).json({result: 422, errors: errors.array()});
+ * */
+router.post(
+  "/",
+  upload.single("avatar"),
+  userValidator,
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (errors.isEmpty()) {
+        let user = req.body;
+        user.password = await bcrypt.hash(user.password, saltRounds);
+        if (req.file) user.avatar = req.file.filename;
+        const data = await userController.createUser(user);
+        res.send({ result: 200, data: data });
+      } else {
+        res.status(422).json({ result: 422, errors: errors.array() });
+      }
+    } catch (err) {
+      // handle duplicate email error
+      if (err.name === "SequelizeUniqueConstraintError") {
+        res.status(422).json({ result: 422, errors: err.errors });
+      } else {
+        next(err);
+      }
     }
   }
-  catch(err){
-    // handle duplicate email error
-    if (err.name === 'SequelizeUniqueConstraintError') {
-      res.status(422).json({result: 422, errors: err.errors});
-    }else{
-      next(err);
+);
+
+/**
+ * @swagger
+ * /api/users/login:
+ *  post:
+ *    description: Use to login a user
+ *    consumes:
+ *      - application/json
+ *    tags:
+ *      - Users
+ *    requestBody:
+ *     content:
+ *      application/json:
+ *       schema:
+ *        type: object
+ *        properties:
+ *         email:
+ *          type: string
+ *          example: john@dudes.com
+ *         password:
+ *          type: string
+ *          example: password
+ *        required:
+ *         - email
+ *         - password
+ *    responses:
+ *      '200':
+ *        description: A successful response
+ *      '404':
+ *        description: User not found
+ *      '422':
+ *         description: Validation error
+ *      '500':
+ *        description: Server error
+ * */
+router.post("/login", async (req, res, next) => {
+  try {
+    const user = await userController.getUserByEmail(req.body.email);
+    if (user && (await bcrypt.compare(req.body.password, user.password))) {
+      // Passwords match - create token
+      const token = jwt.sign({ userId: user.id }, process.env.JWT_KEY, {
+        expiresIn: '1h',
+        });
+      res.send({ result: 200, data: token });
+    } else {
+      res.status(404).json({ result: 404, message: "User not found" });
     }
+  } catch (err) {
+    next(err);
   }
 });
 
@@ -188,7 +248,7 @@ router.post("/", upload.single('avatar'), userValidator, async (req, res, next) 
  *        description: Server error
  */
 router.put("/:id", userUpdateValidator, async (req, res, next) => {
-  try{
+  try {
     const errors = validationResult(req);
     if (errors.isEmpty()) {
       const data = await userController.updateUser(req.params.id, req.body);
@@ -198,10 +258,9 @@ router.put("/:id", userUpdateValidator, async (req, res, next) => {
         res.send({ result: 200, data: data });
       }
     } else {
-      res.status(422).json({result: 422, errors: errors.array()});
+      res.status(422).json({ result: 422, errors: errors.array() });
     }
-  }
-  catch(err){
+  } catch (err) {
     next(err);
   }
 });
@@ -232,7 +291,7 @@ router.put("/:id", userUpdateValidator, async (req, res, next) => {
  *        description: Server error
  */
 router.delete("/:id", idParamValidator, async (req, res, next) => {
-  try{
+  try {
     const errors = validationResult(req);
     if (errors.isEmpty()) {
       const data = await userController.deleteUser(req.params.id);
@@ -242,10 +301,9 @@ router.delete("/:id", idParamValidator, async (req, res, next) => {
         res.send({ result: 200, data: data });
       }
     } else {
-      res.status(422).json({result: 422, errors: errors.array()});
+      res.status(422).json({ result: 422, errors: errors.array() });
     }
-  }
-  catch(err){
+  } catch (err) {
     next(err);
   }
 });
