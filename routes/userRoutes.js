@@ -5,7 +5,7 @@ const { idParamValidator } = require("../validators");
 const router = express.Router();
 const userController = require("../controllers/userController");
 const multer  = require('multer');
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: process.env.UPLOADS_DIR || 'uploads'});
 
 /**
  * @swagger
@@ -77,22 +77,21 @@ router.get("/:id", idParamValidator, async (req, res, next) => {
   }
 });
 
-/**
+
+/** 
  * @swagger
  * /api/users:
  *  post:
- *    description: Use to create a new user
+ *    description: Use to create a user
+ *    consumes:
+ *      - multipart/form-data
  *    tags:
  *      - Users
  *    requestBody:
  *     content:
- *      application/json:
+ *      multipart/form-data:
  *       schema:
  *        type: object
- *        required:
- *         - name
- *         - email
- *         - password
  *        properties:
  *         name:
  *          type: string
@@ -105,25 +104,27 @@ router.get("/:id", idParamValidator, async (req, res, next) => {
  *          example: password
  *         avatar:
  *          type: string
- *          example: filename.jpg
+ *          format: binary
+ *        required:
+ *         - name
+ *         - email
+ *         - password
  *    responses:
  *      '200':
  *        description: A successful response
- *      '400':
- *        description: Invalid JSON
  *      '404':
  *        description: User not found
  *      '422':
- *        description: Validation error
+ *         description: Validation error
  *      '500':
  *        description: Server error
- */
+* */
 router.post("/", upload.single('avatar'), userValidator, async (req, res, next) => {
   try{
     const errors = validationResult(req);
     if (errors.isEmpty()) {
       let user = req.body;
-      user.avatar = req.file.filename;
+      if (req.file) user.avatar = req.file.filename;
       const data = await userController.createUser(user);
       res.send({ result: 200, data: data });
     } else {

@@ -7,3 +7,4 @@ DB_SSL=true
 BASE_URL=https://iodblogapi.azurewebsites.net,
 PORT=3000
 CORS_ORIGIN=https://iodblog.azurewebsites.net
+UPLOADS_DIR=uploads
