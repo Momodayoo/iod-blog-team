@@ -192,13 +192,14 @@ router.post("/login", async (req, res, next) => {
       const token = jwt.sign({ userId: user.id }, process.env.JWT_KEY, {
         expiresIn: '1h',
         });
-      res.send({ result: 200, data: token });
+      const data = { token: token, user: user}
+      res.send({ result: 200, data: data });
     } else {
       res.status(404).json({ result: 404, message: "User not found" });
     }
   } catch (err) {
     next(err);
-  }
+  }           
 });
 
 /**
